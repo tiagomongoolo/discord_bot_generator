@@ -10,7 +10,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 require('dotenv').config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Para Render usa PORT dinámico
 
 // 📁 Rutas
 const PLANTILLA_PATH = path.join(__dirname, 'plantilla', 'Proyecto12025');
@@ -21,7 +21,7 @@ const PUBLIC_PATH = path.join(__dirname, 'public');
 // 🌐 Middlewares
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json()); // Necesario para leer JSON
+app.use(express.json());
 app.use(session({
   secret: 'super-secret', // ⚠️ Cámbialo en producción
   resave: false,
@@ -34,7 +34,7 @@ app.use(passport.session());
 passport.use(new DiscordStrategy({
   clientID: process.env.DISCORD_CLIENT_ID,
   clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  callbackURL: 'http://localhost:3000/auth/discord/callback',
+  callbackURL: process.env.CALLBACK_URL,
   scope: ['identify', 'guilds']
 }, (accessToken, refreshToken, profile, done) => {
   return done(null, profile);
@@ -44,8 +44,8 @@ passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
 // 🌍 Rutas estáticas
-app.use('/frontend', express.static(FRONTEND_PATH)); // Para step1.html y demás
-app.use(express.static(PUBLIC_PATH)); // Para dashboard.html y root
+app.use('/frontend', express.static(FRONTEND_PATH));
+app.use(express.static(PUBLIC_PATH));
 
 // 🔐 Rutas de autenticación
 app.get('/auth/discord', passport.authenticate('discord'));
@@ -53,7 +53,7 @@ app.get('/auth/discord', passport.authenticate('discord'));
 app.get('/auth/discord/callback', passport.authenticate('discord', {
   failureRedirect: '/'
 }), (req, res) => {
-  res.redirect('/dashboard.html');
+  res.redirect('/dashboard.html'); // O tu frontend final
 });
 
 app.get('/me', (req, res) => {
@@ -81,10 +81,7 @@ app.post('/generar-bot', async (req, res) => {
   const carpetaTemporal = path.join(__dirname, 'temporal', nombre);
 
   try {
-    // 1. Copiar plantilla base
     await fs.copy(PLANTILLA_PATH, carpetaTemporal);
-
-    // 2. Limpiar y copiar comandos
     const comandosFinal = path.join(carpetaTemporal, 'comandos');
     await fs.emptyDir(comandosFinal);
 
@@ -94,23 +91,19 @@ app.post('/generar-bot', async (req, res) => {
       await fs.copy(origen, destino);
     }
 
-    // 3. Música
     if (!musica) {
       await fs.remove(path.join(carpetaTemporal, 'musicManager.js')).catch(() => {});
       await fs.remove(path.join(comandosFinal, 'music.js')).catch(() => {});
     }
 
-    // 4. Reemplazar en .env
     const envPath = path.join(carpetaTemporal, '.env');
     let env = await fs.readFile(envPath, 'utf8');
     env = env.replace(/DISCORD_TOKEN=.*/g, `DISCORD_TOKEN=${token}`);
     env = env.replace(/PREFIX=.*/g, `PREFIX=${prefijo}`);
     await fs.writeFile(envPath, env);
 
-    // 5. Borrar node_modules
     await fs.remove(path.join(carpetaTemporal, 'node_modules'));
 
-    // 6. Crear ZIP
     const zipName = `${nombre}.zip`;
     const zipPath = path.join(__dirname, zipName);
     const output = fs.createWriteStream(zipPath);
