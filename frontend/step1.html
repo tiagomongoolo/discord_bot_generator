@@ -1,0 +1,105 @@
+<!-- ======================= -->
+<!-- 📄 step1.html completo -->
+<!-- ======================= -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador Bot - Paso 1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: url('source.gif') no-repeat center center fixed;
+      background-size: cover;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen relative">
+
+  <!-- Pantalla de inicio -->
+  <div id="pantalla-inicial" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <button onclick="iniciarMusica()" class="text-white bg-green-500 hover:bg-green-600 px-6 py-4 rounded-xl text-xl font-bold shadow-lg">
+      Haz clic para comenzar 🎵
+    </button>
+  </div>
+
+  <!-- Botón Go Back -->
+  <div class="absolute top-4 right-4 z-40">
+    <a href="../dashboard.html">
+      <button class="bg-white text-center w-48 rounded-2xl h-14 relative text-black text-xl font-semibold group" type="button">
+        <div class="bg-green-400 rounded-xl h-12 w-1/4 flex items-center justify-center absolute left-1 top-[4px] group-hover:w-[184px] z-10 duration-500">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" height="25px" width="25px">
+            <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z" fill="#000000"></path>
+            <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z" fill="#000000"></path>
+          </svg>
+        </div>
+        <p class="translate-x-2">Go Back</p>
+      </button>
+    </a>
+  </div>
+
+  <!-- Audio y cartel -->
+  <audio id="musica-fondo" loop></audio>
+  <div id="nombre-cancion" class="fixed top-6 left-6 px-10 py-4 text-xl font-bold text-white bg-[#1DB954] rounded-2xl shadow-xl opacity-0 -translate-x-[300px] transition-all duration-700 z-40">
+    Cancion
+  </div>
+
+  <!-- Formulario -->
+  <div class="bg-white bg-opacity-80 rounded-xl shadow-xl p-8 w-full max-w-md z-10">
+    <h1 class="text-2xl font-bold mb-6 text-center">Generador de Bot de Discord</h1>
+    <form action="step2.html" method="GET" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium">Nombre del bot:</label>
+        <input required type="text" name="nombre" class="w-full px-4 py-2 rounded-lg border border-gray-300" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Token:</label>
+        <input required type="text" name="token" class="w-full px-4 py-2 rounded-lg border border-gray-300" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Prefijo:</label>
+        <input required type="text" name="prefijo" class="w-full px-4 py-2 rounded-lg border border-gray-300" />
+      </div>
+      <div class="flex justify-center">
+        <button class="hover:brightness-110 hover:animate-pulse font-bold py-3 px-6 rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/50 text-white">
+          Continuar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- JS -->
+  <script>
+    const canciones = [
+      { archivo: "Sobrenatural - Jhosh Cg, Kaile DRK.mp3", nombre: "Sobrenatural - Jhosh Cg, Kaile DRK" },
+      { archivo: "Erom - SI ME BUSCAS (feat. Youngg Lethal).mp3", nombre: "Erom - SI ME BUSCAS (feat. Youngg Lethal)" },
+      { archivo: "Thuglack - Brandy.mp3", nombre: "Thuglack - Brandy" },
+      { archivo: "111.mp3", nombre: "Yan Block - 111" },
+      { archivo: "Cris MJ, Yan Block - 333.mp3", nombre: "Cris MJ, Yan Block - 333" }
+    ];
+    const elegida = canciones[Math.floor(Math.random() * canciones.length)];
+    const audio = document.getElementById("musica-fondo");
+    const cartel = document.getElementById("nombre-cancion");
+    audio.src = `music/${elegida.archivo}`;
+    audio.volume = 0.25;
+
+    function iniciarMusica() {
+      audio.play();
+      document.getElementById("pantalla-inicial").classList.add("hidden");
+
+      cartel.textContent = elegida.nombre;
+      cartel.classList.remove("opacity-0", "-translate-x-[300px]");
+      cartel.classList.add("opacity-100", "translate-x-0");
+
+      setTimeout(() => {
+        cartel.classList.add("opacity-0", "-translate-x-[300px]");
+      }, 3000);
+
+      // Guardar para siguiente página
+      localStorage.setItem("cancion_archivo", elegida.archivo);
+      localStorage.setItem("cancion_nombre", elegida.nombre);
+    }
+  </script>
+</body>
+</html>

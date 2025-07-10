@@ -1,0 +1,128 @@
+<!-- ======================= -->
+<!-- 📄 step2.html completo -->
+<!-- ======================= -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seleccionar Comandos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="relative min-h-screen bg-black text-white flex flex-col items-center justify-start py-10">
+  <img src="source.gif" class="fixed top-0 left-0 w-full h-full object-cover -z-10" alt="Fondo animado"/>
+
+
+  <!-- Botón Go Back -->
+  <div class="absolute top-4 right-4 z-40">
+    <a href="../dashboard.html">
+      <button class="bg-white text-center w-48 rounded-2xl h-14 relative text-black text-xl font-semibold group" type="button">
+        <div class="bg-green-400 rounded-xl h-12 w-1/4 flex items-center justify-center absolute left-1 top-[4px] group-hover:w-[184px] z-10 duration-500">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" height="25px" width="25px">
+            <path d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z" fill="#000000"></path>
+            <path d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z" fill="#000000"></path>
+          </svg>
+        </div>
+        <p class="translate-x-2">Go Back</p>
+      </button>
+    </a>
+  </div>
+  
+  <!-- Audio -->
+  <audio id="musica-fondo" loop></audio>
+  <div id="nombre-cancion" class="fixed top-6 left-6 px-10 py-4 text-xl font-bold text-white bg-[#1DB954] rounded-2xl shadow-xl opacity-0 -translate-x-[300px] transition-all duration-700 z-40">
+    Canción
+  </div>
+
+  <div class="bg-black/70 backdrop-blur-lg p-6 rounded-xl shadow-2xl w-full max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-center">Selecciona los Comandos</h1>
+    <form id="comando-form" class="space-y-6">
+      <input type="hidden" id="nombre" name="nombre">
+      <input type="hidden" id="token" name="token">
+      <input type="hidden" id="prefijo" name="prefijo">
+      <div id="comandos-container" class="mt-4 max-h-[300px] overflow-y-auto space-y-3"></div>
+      <button type="submit" id="btn-descargar" class="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-full shadow-lg shadow-indigo-500/50 transition-all">
+        Descargar Bot 🧐
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    document.getElementById("nombre").value = params.get("nombre") || "";
+    document.getElementById("token").value = params.get("token") || "";
+    document.getElementById("prefijo").value = params.get("prefijo") || "";
+
+    fetch("/comandos-disponibles")
+      .then(res => res.json())
+      .then(comandos => {
+        const container = document.getElementById("comandos-container");
+        comandos.forEach(comando => {
+          const label = document.createElement("label");
+          label.className = "flex items-center space-x-3 bg-white/90 p-2 rounded shadow";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.name = "comandos";
+          checkbox.value = comando;
+          checkbox.className = "form-checkbox h-4 w-4 text-indigo-600";
+
+          const span = document.createElement("span");
+          span.textContent = comando;
+          span.className = "text-black";
+
+          label.appendChild(checkbox);
+          label.appendChild(span);
+          container.appendChild(label);
+        });
+      });
+
+    document.getElementById("comando-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = {
+        nombre: document.getElementById("nombre").value,
+        token: document.getElementById("token").value,
+        prefijo: document.getElementById("prefijo").value,
+        comandos: Array.from(document.querySelectorAll('input[name="comandos"]:checked')).map(el => el.value)
+      };
+
+      const res = await fetch("/generar-bot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${data.nombre}.zip`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert("Ocurrió un error al generar el bot.");
+      }
+    });
+
+    // Reproducir desde localStorage
+    const archivo = localStorage.getItem("cancion_archivo");
+    const nombre = localStorage.getItem("cancion_nombre");
+    const audio = document.getElementById("musica-fondo");
+    const cartel = document.getElementById("nombre-cancion");
+
+    if (archivo && nombre) {
+      audio.src = `music/${archivo}`;
+      audio.volume = 0.25;
+      audio.play();
+
+      cartel.textContent = nombre;
+      cartel.classList.remove("opacity-0", "-translate-x-[300px]");
+      cartel.classList.add("opacity-100", "translate-x-0");
+      setTimeout(() => {
+        cartel.classList.add("opacity-0", "-translate-x-[300px]");
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

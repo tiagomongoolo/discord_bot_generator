@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Animación de carga simple */
+    #loading {
+      display: none;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #4F46E5;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Panel de Control</h1>
+    <div id="user-info">Cargando usuario...</div>
+    <button onclick="verBots()">🛠 Generar Bot</button>
+    <button onclick="verServidores()">🛡 Administrar Servidores</button>
+    <div id="loading">Redirigiendo al generador...</div>
+  </div>
+
+  <script>
+    fetch('/me')
+      .then(res => {
+        if (!res.ok) throw new Error("No autenticado");
+        return res.json();
+      })
+      .then(user => {
+        document.getElementById('user-info').innerText = `Conectado como ${user.username}#${user.discriminator}`;
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+
+    function verBots() {
+      const loading = document.getElementById('loading');
+      loading.style.display = 'block';
+      setTimeout(() => {
+        window.location.href = '/frontend/step1.html';
+      }, 1000);
+    }
+
+    function verServidores() {
+      alert("Aquí irá la función para administrar servidores.");
+    }
+  </script> 
+</body>
+</html>
